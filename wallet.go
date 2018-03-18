@@ -2,7 +2,6 @@ package korbit
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -47,91 +46,36 @@ type Wallet struct {
 	Available     []*Currency         `json:"available"`
 }
 
-// Wallets is for getting the wallet balances for all coins in korbit
-type Wallets struct {
-	BTC *Wallet
-	ETC *NonBtcWallet
-	ETH *NonBtcWallet
+type Balance_ struct {
+	Available       float64 `json:"available,string"`
+	TradeInuse      float64 `json:"trade_in_use,string"`
+	WithdrawalInUse float64 `json:"withdrawal_in_use,string"`
 }
+
+type Balances map[string]Balance_
 
 // GetWallets gives back all of the wallets for a user.
-func (k *API) GetWallets() (*Wallets, error) {
+func (k *API) GetBalances() (balances Balances, err error) {
 
-	var wallets Wallets
-
-	for _, v := range currencies {
-		url := fmt.Sprintf("%s?currency_pair=%s", WalletStatus, v)
-		req, err := k.NewRequest(url, "GET", nil)
-		if err != nil {
-			return nil, errors.Wrap(err, "making korbit wallet status request")
-		}
-
-		resp, err := k.Client.Do(req)
-		if err != nil {
-			return nil, errors.Wrap(err, "getting korbit wallet status")
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			return nil, errors.Errorf("status: %d Header: %v", resp.StatusCode, resp.Header)
-		}
-
-		switch v {
-		case BTCKRW:
-			var wallet Wallet
-			err = json.NewDecoder(resp.Body).Decode(&wallet)
-			wallets.BTC = &wallet
-		case ETHKRW:
-			var wallet NonBtcWallet
-			err = json.NewDecoder(resp.Body).Decode(&wallet)
-			wallets.ETH = &wallet
-		case ETCKRW:
-			var wallet NonBtcWallet
-			err = json.NewDecoder(resp.Body).Decode(&wallet)
-			wallets.ETC = &wallet
-		default:
-			return nil, errors.New("received and unknown coin type")
-		}
-
-		if err != nil {
-			return nil, errors.Wrapf(err, "korbit wallet unmarshal at: %s", v)
-		}
+	req, err := k.NewRequest(BalancesURL, "GET", nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "making korbit wallet status request")
 	}
 
-	return &wallets, nil
-}
-
-// GetCoinBalance goes through the wallet specified with coin and returns the balance in
-// krw and in the currency of coin
-func (k *API) GetCoinBalance(coin string, wallets *Wallets) (coins, krw float64) {
-	switch coin {
-	case BTCKRW:
-		for _, v := range wallets.BTC.Balance {
-			switch v.Currency {
-			case BTC:
-				coins = v.Value
-			case KRW:
-				krw = v.Value
-			}
-		}
-	case ETHKRW:
-		for _, v := range wallets.ETH.Balance {
-			switch v.Currency {
-			case ETH:
-				coins = v.Value
-			case KRW:
-				krw = v.Value
-			}
-		}
-	case ETCKRW:
-		for _, v := range wallets.ETC.Balance {
-			switch v.Currency {
-			case ETC:
-				coins = v.Value
-			case KRW:
-				krw = v.Value
-			}
-		}
+	resp, err := k.Client.Do(req)
+	if err != nil {
+		return nil, errors.Wrap(err, "getting korbit wallet status")
 	}
-	return coins, krw
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.Errorf("status: %d Header: %v", resp.StatusCode, resp.Header)
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&balances)
+	if err != nil {
+		return nil, errors.Wrapf(err, "korbit wallet unmarshal failed")
+	}
+
+	return balances, nil
 }

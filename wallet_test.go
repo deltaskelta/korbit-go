@@ -5,12 +5,9 @@ import (
 )
 
 func TestGetWallets(t *testing.T) {
-	wallets, err := api.GetWallets()
+	balances, err := api.GetBalances()
 	if err != nil {
 		t.Error(err)
 	}
-
-	for _, v := range currencies {
-		_, _ = api.GetCoinBalance(v, wallets)
-	}
+	println(balances)
 }

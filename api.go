@@ -43,7 +43,7 @@ var currencies = []string{BTCKRW, ETHKRW, ETCKRW}
 // LoginURL and other things here are the urls that are used for korbit.
 var (
 	LoginURL           = "https://api.korbit.co.kr/v1/oauth2/access_token"
-	WalletStatus       = "https://api.korbit.co.kr/v1/user/wallet"
+	BalancesURL        = "https://api.korbit.co.kr/v1/user/balances"
 	BtcWithdrawal      = "https://api.korbit.co.kr/v1/user/coins/out"
 	PlaceBid           = "https://api.korbit.co.kr/v1/user/orders/buy"
 	PlaceAsk           = "https://api.korbit.co.kr/v1/user/orders/sell"

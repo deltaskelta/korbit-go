@@ -36,7 +36,7 @@ func TestBuy(t *testing.T) {
 	buy := OrderArgs{
 		CoinAmount:   "0.001",
 		CurrencyPair: BTCKRW,
-		Price:        3000000,
+		Price:        10000000,
 		Type:         "limit",
 	}
 
@@ -60,7 +60,7 @@ func TestSell(t *testing.T) {
 	sell := OrderArgs{
 		CoinAmount:   "0.001",
 		CurrencyPair: BTCKRW,
-		Price:        3000000,
+		Price:        20000000,
 		Type:         "limit",
 	}
 
